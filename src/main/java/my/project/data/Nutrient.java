@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by michele on 2/5/17.
  */
-public class Nutrient extends MongoId {
+public class Nutrient {
 
     @Id
     public String id;

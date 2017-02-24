@@ -14,6 +14,8 @@
         <jackson.version>2.8.6</jackson.version>
         <spring.version>4.2.1.RELEASE</spring.version>
         <spring-data.version>Gosling-RELEASE</spring-data.version>
+        <org.slf4j.version>1.7.23</org.slf4j.version>
+        <log4j.version>1.2.17</log4j.version>
     </properties>
 
     <developers>
@@ -55,7 +57,33 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- logging - more performant -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${org.slf4j.version}</version>
+        </dependency>
+
+        <!-- bridge between log4j and slf4j -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${org.slf4j.version}</version>
+        </dependency>
+
+        <!-- logging -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
         <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-rest-webmvc</artifactId>
@@ -68,7 +96,14 @@
 
         <dependency>
             <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-jpa</artifactId>
+            <artifactId>spring-data-mongodb</artifactId>
+        </dependency>
+
+        <!-- Spring for testing-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->

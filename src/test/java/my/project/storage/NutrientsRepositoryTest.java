@@ -4,6 +4,8 @@ import my.project.data.CsvNutrientParserException;
 import my.project.data.Nutrient;
 import my.project.data.Parser;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,12 +16,15 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Created by michele on 2/17/17.
+ * Created by michele on 2/24/17.
  */
-public class NutrientsDAOTest {
-    @Test
-    public void testSaveMany() throws IOException, CsvNutrientParserException {
+@Transactional
+public class NutrientsRepositoryTest extends BasicIntegrationTest {
+    @Autowired
+    private NutrientsRepository nutrientsRepository;
 
+    @Test
+    public void readWriteTest() throws IOException, CsvNutrientParserException {
         String almondsNutritionalValuesCsv = new String(Files.readAllBytes(Paths.get("src/test/resources/sample_data/almonds_nutritional_values.csv")));
         Nutrient almonds = Parser.csvToNutrientParser(almondsNutritionalValuesCsv);
         String orangesNutritionalValuesCsv = new String(Files.readAllBytes(Paths.get("src/test/resources/sample_data/oranges_nutritional_values.csv")));
@@ -32,10 +37,13 @@ public class NutrientsDAOTest {
         nutrients.add(oranges);
         nutrients.add(zucchini);
 
-        NutrientsDAO nutrientsDAO = new NutrientsDAO();
-        nutrientsDAO.saveMany(nutrients);
-
-        List<Nutrient> nutrientsFromDb = nutrientsDAO.findAll();
-        assertEquals(nutrients, nutrientsFromDb);
+        int nutrientsBefore = nutrientsRepository.findAll().size();
+        nutrientsRepository.save(nutrients);
+        assertEquals(almonds, nutrientsRepository.findByName(almonds.getName()));
+        assertEquals(oranges, nutrientsRepository.findByName(oranges.getName()));
+        assertEquals(zucchini, nutrientsRepository.findByName(zucchini.getName()));
+        nutrientsRepository.delete(nutrients);
+        int nutrientsAfter = nutrientsRepository.findAll().size();
+        assertEquals(nutrientsBefore, nutrientsAfter);
     }
 }
