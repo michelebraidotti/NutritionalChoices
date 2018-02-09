@@ -1,0 +1,35 @@
+=== In psql console
+create user nutrients with password '12345';
+create database nutrients;
+grant all on database nutrients to nutrients;
+
+=== In bash console:
+psql nutrients < nutrients.sql
+
+=== In psql console:
+== (may not be needed as of Postgrsql 9.6)
+ALTER USER nutrients SET search_path = rawdata,public;
+
+
+=== Setting up postgres configuration.
+Change /etc/postgresql/9.1/main/pg_hba.conf
+add this line before any line referring to 'local' 'all' 'all' 'peer' or 'md5':
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+local   nutrients         all                          	        trust
+
+or something that lets you connect to the database as nutrients user.
+
+Make sure that in /etc/postgresql/9.4/main/postgresql.conf
+the following line is not commented:
+
+listen_addresses = 'localhost'          # what IP address(es) to listen on;
+
+and that the port is set to 5432:
+
+port = 5432                             # (change requires restart)
+
+=== Test postgresql setup.
+Log in with "psql nutrients --username=nutrients".
+Run "nmap -sT -O localhost" and make sure that "5432/tcp  open  postgresql" is reported in the command output.
+
