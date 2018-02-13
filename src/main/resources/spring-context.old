@@ -13,7 +13,7 @@
         <constructor-arg value="nutritional_choices"/>
     </bean>
 
-    <mongo:repositories base-package="my.project.storage" />
+    <mongo:repositories base-package="my.project.repository" />
 
 </beans>
 

@@ -1,8 +1,9 @@
-package my.project.storage;
+package my.project.repository;
 
-import my.project.data.CsvNutrientParserException;
-import my.project.data.Nutrient;
-import my.project.data.Parser;
+import my.project.data.repository.NutrientsRepository;
+import my.project.data.parser.CsvNutrientParserException;
+import my.project.data.entities.Nutrient;
+import my.project.data.parser.UsdaParser;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,11 +27,11 @@ public class NutrientsRepositoryTest extends BasicIntegrationTest {
     @Test
     public void readWriteTest() throws IOException, CsvNutrientParserException {
         String almondsNutritionalValuesCsv = new String(Files.readAllBytes(Paths.get("src/test/resources/sample_data/almonds_nutritional_values.csv")));
-        Nutrient almonds = Parser.csvToNutrientParser(almondsNutritionalValuesCsv);
+        Nutrient almonds = UsdaParser.csvToNutrientParser(almondsNutritionalValuesCsv);
         String orangesNutritionalValuesCsv = new String(Files.readAllBytes(Paths.get("src/test/resources/sample_data/oranges_nutritional_values.csv")));
-        Nutrient oranges = Parser.csvToNutrientParser(orangesNutritionalValuesCsv);
+        Nutrient oranges = UsdaParser.csvToNutrientParser(orangesNutritionalValuesCsv);
         String zucchiniNutritionalValuesCsv = new String(Files.readAllBytes(Paths.get("src/test/resources/sample_data/zucchini_nutritional_values.csv")));
-        Nutrient zucchini = Parser.csvToNutrientParser(zucchiniNutritionalValuesCsv);
+        Nutrient zucchini = UsdaParser.csvToNutrientParser(zucchiniNutritionalValuesCsv);
 
         List<Nutrient> nutrients = new ArrayList<Nutrient>();
         nutrients.add(almonds);
@@ -38,11 +39,11 @@ public class NutrientsRepositoryTest extends BasicIntegrationTest {
         nutrients.add(zucchini);
 
         int nutrientsBefore = nutrientsRepository.findAll().size();
-        nutrientsRepository.save(nutrients);
-        assertEquals(almonds, nutrientsRepository.findByName(almonds.getName()));
-        assertEquals(oranges, nutrientsRepository.findByName(oranges.getName()));
-        assertEquals(zucchini, nutrientsRepository.findByName(zucchini.getName()));
-        nutrientsRepository.delete(nutrients);
+        nutrientsRepository.saveAll(nutrients);
+        assertEquals(almonds, nutrientsRepository.findByName(almonds.name));
+        assertEquals(oranges, nutrientsRepository.findByName(oranges.name));
+        assertEquals(zucchini, nutrientsRepository.findByName(zucchini.name));
+        nutrientsRepository.deleteAll(nutrients);
         int nutrientsAfter = nutrientsRepository.findAll().size();
         assertEquals(nutrientsBefore, nutrientsAfter);
     }

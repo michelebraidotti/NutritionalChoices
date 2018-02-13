@@ -1,4 +1,4 @@
-package my.project.data;
+package my.project.data.entities;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -10,9 +10,6 @@ public class Measurement {
     private String element;
     private String unit;
     private String value;
-
-    public Measurement() {
-    }
 
     public Measurement(String element, String unit, String value) {
         this.element = element;
@@ -54,8 +51,6 @@ public class Measurement {
 
         return new EqualsBuilder()
                 .append(element, that.element)
-                .append(unit, that.unit)
-                .append(value, that.value)
                 .isEquals();
     }
 
@@ -63,8 +58,6 @@ public class Measurement {
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
                 .append(element)
-                .append(unit)
-                .append(value)
                 .toHashCode();
     }
 }

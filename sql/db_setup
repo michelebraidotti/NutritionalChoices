@@ -4,7 +4,7 @@ create database nutrients;
 grant all on database nutrients to nutrients;
 
 === In bash console:
-psql nutrients < nutrients.sql
+psql nutrients < nutrients_vX.X.sql
 
 === In psql console:
 == (may not be needed as of Postgrsql 9.6)

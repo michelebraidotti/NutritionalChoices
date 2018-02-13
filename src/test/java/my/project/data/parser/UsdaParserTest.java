@@ -1,5 +1,9 @@
-package my.project.data;
+package my.project.data.parser;
 
+import my.project.data.entities.Measurement;
+import my.project.data.entities.Nutrient;
+import my.project.data.parser.CsvNutrientParserException;
+import my.project.data.parser.UsdaParser;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -7,7 +11,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by michele on 2/5/17.
  */
-public class ParserTest {
+public class UsdaParserTest {
     @Test
     public void testCsvToNutrientParser() throws CsvNutrientParserException {
         // Sample data
@@ -24,11 +28,10 @@ public class ParserTest {
                  "\"Energy\",kcal,579,828,533,625,550,164,7\n" +
                  "\"Protein\",g,21.15,30.24,19.46,22.84,20.09,6.00,0.25\n" +
                  "\"Total lipid (fat)\",g,49.93,71.40,45.94,53.92,47.43,14.16,0.60";
-        Nutrient almonds = Parser.csvToNutrientParser(jsonRawData);
-        assertEquals(expectedName, almonds.getName());
+        Nutrient almonds = UsdaParser.csvToNutrientParser(jsonRawData);
+        assertEquals(expectedName, almonds.name);
         assertEquals(expectedWaterNutrientMeasurement.getUnit(), almonds.getMeasurementByName(expectedWaterNutrientName).getUnit());
         assertEquals(expectedWaterNutrientMeasurement.getValue(), almonds.getMeasurementByName(expectedWaterNutrientName).getValue());
         assertEquals(4, almonds.getMeasurements().size());
-
     }
 }

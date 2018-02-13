@@ -1,4 +1,4 @@
-package my.project.data;
+package my.project.data.parser;
 
 /**
  * Created by michele on 2/5/17.
