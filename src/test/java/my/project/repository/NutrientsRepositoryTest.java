@@ -1,5 +1,6 @@
 package my.project.repository;
 
+import my.project.data.entities.testobjectgenerator.NutrientTestObjectGenerator;
 import my.project.data.repository.NutrientsRepository;
 import my.project.data.parser.CsvNutrientParserException;
 import my.project.data.entities.Nutrient;
@@ -46,5 +47,14 @@ public class NutrientsRepositoryTest extends BasicIntegrationTest {
         nutrientsRepository.deleteAll(nutrients);
         int nutrientsAfter = nutrientsRepository.findAll().size();
         assertEquals(nutrientsBefore, nutrientsAfter);
+    }
+
+    @Test
+    public void findByNameTest() throws IOException, CsvNutrientParserException {
+        Nutrient nutrientBefore = NutrientTestObjectGenerator.Generate(1).get(0);
+        nutrientsRepository.save(nutrientBefore);
+        Nutrient nutrientAfter = nutrientsRepository.findByName(nutrientBefore.name);
+        assertEquals(nutrientBefore, nutrientAfter);
+
     }
 }

@@ -4,6 +4,8 @@ import my.project.data.entities.testobjectgenerator.NutrientTestObjectGenerator;
 import org.junit.Test;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * Created by michele on 2/10/18.
  */
@@ -11,9 +13,9 @@ import java.util.List;
 public class NutrientsTest {
 
     @Test
-    public void test() {
+    public void testGenerator() {
+        // Just checking that the generator is still ok
         List<Nutrient> nutrientList = NutrientTestObjectGenerator.Generate(5);
-        // nothing to test yet
-        System.out.print("Testing the test!\n");
+        assertEquals(5, nutrientList.size());
     }
 }
