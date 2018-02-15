@@ -1,4 +1,4 @@
-package my.project.nutrients;
+package my.project.services;
 
 import my.project.data.entities.Nutrient;
 import my.project.data.repository.NutrientsRepository;
@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ public class UsdaDataImporter {
     private static String FOOD_GROUP = "FD_GROUP.txt";
     private static String NUTRIENT_DATA = "NUT_DATA.txt";
     private static String NUTRIENT_DEFINITION = "NUTR_DEF.txt";
-    private static String CSV_SEPARATOR = "^";
+    private static String CSV_SEPARATOR = "\\^";
     private static String CSV_EXTRA_SEPARATOR = "~";
 
     private String dataPath = "";
@@ -73,7 +74,8 @@ public class UsdaDataImporter {
 
         // 2. Fill dictionary from NUTRIENT_DEFINITION information
         Map<String, NutrientDef> nutrientDefMap = new HashMap<>();
-        List<String> nutrient_def_lines = Files.readAllLines(Paths.get(getDataPath() + File.separator + NUTRIENT_DEFINITION));
+        List<String> nutrient_def_lines = Files.readAllLines(Paths.get(getDataPath() + File.separator + NUTRIENT_DEFINITION),
+                Charset.forName("ISO-8859-1"));
         for ( String nutrient_def_line:nutrient_def_lines ) {
             String[] elems = nutrient_def_line.split(CSV_SEPARATOR);
             for (int i = 0; i < elems.length; i++) {
@@ -121,6 +123,11 @@ public class UsdaDataImporter {
         Map<String,List<NutrientData>> nutrientDataMap = new HashMap<>();
         List<String> nutrient_data_lines = Files.readAllLines(Paths.get(getDataPath() + File.separator + NUTRIENT_DATA));
         for ( String nutrient_data_line:nutrient_data_lines ) {
+            // Fixing an issue with lines ending with empty field (^^ = double separator)
+            if (nutrient_data_line.endsWith("^^")) {
+                nutrient_data_line = nutrient_data_line.substring(0, nutrient_data_line.length() - 1)
+                        + "~~^";
+            }
             String[] elems = nutrient_data_line.split(CSV_SEPARATOR);
             for (int i = 0; i < elems.length; i++) {
                 elems[i] = elems[i].replaceAll(CSV_EXTRA_SEPARATOR, "");
@@ -144,7 +151,6 @@ public class UsdaDataImporter {
             nutrientData.UpEB= elems[i++];
             nutrientData.Statcmt = elems[i++];
             nutrientData.AddModDate = elems[i++];
-            nutrientData.CC = elems[i++];
             if (! nutrientDataMap.containsKey(nutrientData.NDBNo)) {
                 nutrientDataMap.put(nutrientData.NDBNo, new ArrayList<>());
             }
@@ -189,7 +195,6 @@ public class UsdaDataImporter {
         public String UpEB = "";
         public String Statcmt = "";
         public String AddModDate = "";
-        public String CC = "";
     }
 
     private class NutrientDef {

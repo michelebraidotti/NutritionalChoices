@@ -39,8 +39,8 @@
 	<!-- let hibernate be in between the database and JPA -->
 	<bean id="jpaVendorAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 			<property name="database" value="POSTGRESQL" />
-			<property name="showSql" value="true" />
-			<property name="generateDdl" value="true" />
+			<property name="showSql" value="false" />
+			<property name="generateDdl" value="false" />
 			<property name="databasePlatform" value= "org.hibernate.dialect.PostgreSQL9Dialect"/>
 	</bean>
 
@@ -52,8 +52,8 @@
 		<property name="jpaProperties">
 			<props>
 				<prop key="hibernate.hbm2ddl.auto">validate</prop>
-				<prop key="hibernate.showSql">true</prop>
-				<prop key="hibernate.formatSql">true</prop>
+				<prop key="hibernate.showSql">false</prop>
+				<prop key="hibernate.formatSql">false</prop>
 			</props>
 		</property>
 	</bean>
