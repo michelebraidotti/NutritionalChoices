@@ -1,5 +1,6 @@
 package my.project.services;
 
+import my.project.data.entities.Measurement;
 import my.project.data.entities.Nutrient;
 import my.project.data.repository.NutrientsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +21,13 @@ import java.util.Map;
  */
 @Service("UsdaDataImporter")
 public class UsdaDataImporter {
-    private static String FOOD_DESC = "FOOD_DES.txt";
+    private static String FOOD_DESC = "FOOD_DES_NEW.txt";
     private static String FOOD_GROUP = "FD_GROUP.txt";
     private static String NUTRIENT_DATA = "NUT_DATA.txt";
-    private static String NUTRIENT_DEFINITION = "NUTR_DEF.txt";
-    private static String CSV_SEPARATOR = "\\^";
-    private static String CSV_EXTRA_SEPARATOR = "~";
+    private static String NUTRIENT_DEFINITION = "NUTR_DEF_NEW.txt";
 
     private String dataPath = "";
-    private List<Nutrient> genes = new ArrayList<Nutrient>();
+    private List<Nutrient> nutrients = new ArrayList<Nutrient>();
     private List<String> errors = new ArrayList<String>();
     private List<String> warnings = new ArrayList<String>();
     @Autowired
@@ -53,104 +52,105 @@ public class UsdaDataImporter {
         return warnings;
     }
 
+    private List<String[]> parseCsvFile(String filePath, int maxCols) throws IOException {
+        String csvSeparator = "\\^";
+        String csvDelimiter = "~";
+        List<String[]> rows = new ArrayList<>();
+        List<String> lines = Files.readAllLines(Paths.get(filePath));
+        for ( String line:lines ) {
+            String[] row = new String[maxCols];
+            String[] elems = line.split(csvSeparator);
+            // TODO if (elems.length > maxCols) then some elems will be silently clipped
+            int i;
+            for (i = 0; i < elems.length; i++) {
+                row[i] = elems[i].replaceAll(csvDelimiter, "");
+            }
+            while ( i < maxCols) {
+                row[i++] = "";
+            }
+            rows.add(row);
+        }
+        return  rows;
+    }
+
     public void parseFiles() throws IOException {
         // - Assumes dataPath is filled and the path contains the USDA data files.
-        // - Will report parsing errors in errors array.
-        // - Will report parsing warning in warnings array.
+        // - Some of the files need to be converted to UTF-8 encoding before running this.
+        // - Will report parsing errors in "errors" array.
+        // - Will report parsing warning in "warnings" array.
         // These are NOT a replacement for throwing exceptions or logging, they are
         // only intended to make the import process interactive and provide a
         // way to alert the users about parsing problems that may be ignored by them.
 
         // 1. Fill dictionary from FOOD_GROUP information
         Map<String, String> foodGroup = new HashMap<>();
-        List<String> food_group_lines = Files.readAllLines(Paths.get(getDataPath() + File.separator + FOOD_GROUP));
-        for ( String food_grp_line:food_group_lines ) {
-            String[] elems = food_grp_line.split(CSV_SEPARATOR);
-            for (int i = 0; i < elems.length; i++) {
-                elems[i] = elems[i].replaceAll(CSV_EXTRA_SEPARATOR, "");
-            }
-            foodGroup.put(elems[0], elems[1]);
+        List<String[]> foodGroupLines = parseCsvFile(getDataPath() + File.separator + FOOD_GROUP, 2);
+        for ( String[] foodGrpLine:foodGroupLines ) {
+            foodGroup.put(foodGrpLine[0], foodGrpLine[1]);
         }
 
         // 2. Fill dictionary from NUTRIENT_DEFINITION information
         Map<String, NutrientDef> nutrientDefMap = new HashMap<>();
-        List<String> nutrient_def_lines = Files.readAllLines(Paths.get(getDataPath() + File.separator + NUTRIENT_DEFINITION),
-                Charset.forName("ISO-8859-1"));
-        for ( String nutrient_def_line:nutrient_def_lines ) {
-            String[] elems = nutrient_def_line.split(CSV_SEPARATOR);
-            for (int i = 0; i < elems.length; i++) {
-                elems[i] = elems[i].replaceAll(CSV_EXTRA_SEPARATOR, "");
-            }
+        List<String[]> nutrient_def_lines = parseCsvFile(getDataPath() + File.separator + NUTRIENT_DEFINITION, 6);
+        for ( String[] nutrient_def_line:nutrient_def_lines ) {
             NutrientDef nutrientDef = new NutrientDef();
             int i = 0;
-            nutrientDef.NutrNo = elems[i++];
-            nutrientDef.Units = elems[i++];
-            nutrientDef.Tagname = elems[i++];
-            nutrientDef.NutrDesc = elems[i++];
-            nutrientDef.NumDec = elems[i++];
-            nutrientDef.SROrder = elems[i++];
+            nutrientDef.NutrNo = nutrient_def_line[i++];
+            nutrientDef.Units = nutrient_def_line[i++];
+            nutrientDef.Tagname = nutrient_def_line[i++];
+            nutrientDef.NutrDesc = nutrient_def_line[i++];
+            nutrientDef.NumDec = nutrient_def_line[i++];
+            nutrientDef.SROrder = nutrient_def_line[i++];
             nutrientDefMap.put(nutrientDef.NutrNo, nutrientDef);
         }
 
-        // 3. Parse FOOD_DESCR
+        // 3. Parse FOOD_DESCR and put them in a list
         List<FoodDescr> foodDescrs = new ArrayList<>();
-        List<String> food_descr_lines = Files.readAllLines(Paths.get(getDataPath() + File.separator + FOOD_DESC));
-        for ( String food_descr_line:food_descr_lines ) {
-            String[] elems = food_descr_line.split(CSV_SEPARATOR);
-            for (int i = 0; i < elems.length; i++) {
-                elems[i] = elems[i].replaceAll(CSV_EXTRA_SEPARATOR, "");
-            }
+        List<String[]> foodDescrLines = parseCsvFile(getDataPath() + File.separator + FOOD_DESC, 14);
+        for ( String[] foodDescrLine:foodDescrLines ) {
             FoodDescr foodDescr = new FoodDescr();
             int i = 0;
-            foodDescr.NDBNo = elems[i++];
-            foodDescr.FdGrpCd = elems[i++];
-            foodDescr.LongDesc = elems[i++];
-            foodDescr.ShrtDesc = elems[i++];
-            foodDescr.ComName = elems[i++];
-            foodDescr.ManufacName = elems[i++];
-            foodDescr.Survey = elems[i++];
-            foodDescr.RefDesc = elems[i++];
-            foodDescr.Refuse = elems[i++];
-            foodDescr.SciName = elems[i++];
-            foodDescr.NFactor = elems[i++];
-            foodDescr.ProFactor = elems[i++];
-            foodDescr.FatFactor = elems[i++];
-            foodDescr.CHOFactor = elems[i++];
+            foodDescr.NDBNo = foodDescrLine[i++];
+            foodDescr.FdGrpCd = foodDescrLine[i++];
+            foodDescr.LongDesc = foodDescrLine[i++];
+            foodDescr.ShrtDesc = foodDescrLine[i++];
+            foodDescr.ComName = foodDescrLine[i++];
+            foodDescr.ManufacName = foodDescrLine[i++];
+            foodDescr.Survey = foodDescrLine[i++];
+            foodDescr.RefDesc = foodDescrLine[i++];
+            foodDescr.Refuse = foodDescrLine[i++];
+            foodDescr.SciName = foodDescrLine[i++];
+            foodDescr.NFactor = foodDescrLine[i++];
+            foodDescr.ProFactor = foodDescrLine[i++];
+            foodDescr.FatFactor = foodDescrLine[i++];
+            foodDescr.CHOFactor = foodDescrLine[i++];
             foodDescrs.add(foodDescr);
         }
 
-        // 4. Parse NUTRIENT_DATA
+        // 4. Parse NUTRIENT_DATA and put them in a map indexed by NDBNo so
+        // it will be easy to retrieve from the previous foodDescrs list
         Map<String,List<NutrientData>> nutrientDataMap = new HashMap<>();
-        List<String> nutrient_data_lines = Files.readAllLines(Paths.get(getDataPath() + File.separator + NUTRIENT_DATA));
-        for ( String nutrient_data_line:nutrient_data_lines ) {
-            // Fixing an issue with lines ending with empty field (^^ = double separator)
-            if (nutrient_data_line.endsWith("^^")) {
-                nutrient_data_line = nutrient_data_line.substring(0, nutrient_data_line.length() - 1)
-                        + "~~^";
-            }
-            String[] elems = nutrient_data_line.split(CSV_SEPARATOR);
-            for (int i = 0; i < elems.length; i++) {
-                elems[i] = elems[i].replaceAll(CSV_EXTRA_SEPARATOR, "");
-            }
+        List<String[]> nutrientDataLines = parseCsvFile(getDataPath() + File.separator + NUTRIENT_DATA, 17);
+        for ( String[] nutrientDataLine:nutrientDataLines ) {
             int i = 0;
             NutrientData nutrientData = new NutrientData();
-            nutrientData.NDBNo = elems[i++];
-            nutrientData.NutrNo = elems[i++];
-            nutrientData.NutrVal = elems[i++];
-            nutrientData.NumData_Pts = elems[i++];
-            nutrientData.StdError = elems[i++];
-            nutrientData.SrcCd = elems[i++];
-            nutrientData.DerivCd = elems[i++];
-            nutrientData.RefNDB_No = elems[i++];
-            nutrientData.AddNutrMark = elems[i++];
-            nutrientData.NumStudies = elems[i++];
-            nutrientData.Min = elems[i++];
-            nutrientData.Max = elems[i++];
-            nutrientData.DF = elems[i++];
-            nutrientData.LowEB = elems[i++];
-            nutrientData.UpEB= elems[i++];
-            nutrientData.Statcmt = elems[i++];
-            nutrientData.AddModDate = elems[i++];
+            nutrientData.NDBNo = nutrientDataLine[i++];
+            nutrientData.NutrNo = nutrientDataLine[i++];
+            nutrientData.NutrVal = nutrientDataLine[i++];
+            nutrientData.NumData_Pts = nutrientDataLine[i++];
+            nutrientData.StdError = nutrientDataLine[i++];
+            nutrientData.SrcCd = nutrientDataLine[i++];
+            nutrientData.DerivCd = nutrientDataLine[i++];
+            nutrientData.RefNDB_No = nutrientDataLine[i++];
+            nutrientData.AddNutrMark = nutrientDataLine[i++];
+            nutrientData.NumStudies = nutrientDataLine[i++];
+            nutrientData.Min = nutrientDataLine[i++];
+            nutrientData.Max = nutrientDataLine[i++];
+            nutrientData.DF = nutrientDataLine[i++];
+            nutrientData.LowEB = nutrientDataLine[i++];
+            nutrientData.UpEB= nutrientDataLine[i++];
+            nutrientData.Statcmt = nutrientDataLine[i++];
+            nutrientData.AddModDate = nutrientDataLine[i++];
             if (! nutrientDataMap.containsKey(nutrientData.NDBNo)) {
                 nutrientDataMap.put(nutrientData.NDBNo, new ArrayList<>());
             }
@@ -158,6 +158,18 @@ public class UsdaDataImporter {
         }
 
         // 5. "Join" FoodDescr with dictionaries and NutrientData
+        for (FoodDescr foodDescr:foodDescrs) {
+            Nutrient nutrient = new Nutrient();
+            nutrient.name = foodDescr.LongDesc;
+            List<Measurement> measurements = new ArrayList<>();
+            List<NutrientData> nutrientDataList = nutrientDataMap.get(foodDescr.NDBNo);
+            for (NutrientData nutrientData:nutrientDataList) {
+                // TODO: transform nutrientdata in measurement and add it to measurements
+                measurements.add(new Measurement("", "", ""));
+            }
+            nutrient.setMeasurements(measurements);
+            nutrients.add(nutrient);
+        }
     }
 
     private class FoodDescr {

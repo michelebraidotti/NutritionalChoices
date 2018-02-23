@@ -14,7 +14,7 @@ import java.util.List;
 @Entity
 @Table(name = "nutrients", schema = "rawdata")
 public class Nutrient {
-    private static final String CSV_SEPARATOR = ",";
+    private static final String CSV_SEPARATOR = ";";
     private static final String CSV_NEWLINE = "\n";
 
     @Id
