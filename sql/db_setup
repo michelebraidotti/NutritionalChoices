@@ -33,3 +33,5 @@ port = 5432                             # (change requires restart)
 Log in with "psql nutrients --username=nutrients".
 Run "nmap -sT -O localhost" and make sure that "5432/tcp  open  postgresql" is reported in the command output.
 
+=== To dump a db schema:
+pg_dump -s -U nutrients > nutrients_vX.X.sql

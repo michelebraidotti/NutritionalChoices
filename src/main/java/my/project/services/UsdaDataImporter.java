@@ -1,14 +1,13 @@
 package my.project.services;
 
-import my.project.data.entities.Measurement;
+import my.project.data.entities.FoodItem;
 import my.project.data.entities.Nutrient;
-import my.project.data.repository.NutrientsRepository;
+import my.project.data.repository.FoodItemsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,11 +26,11 @@ public class UsdaDataImporter {
     private static String NUTRIENT_DEFINITION = "NUTR_DEF_NEW.txt";
 
     private String dataPath = "";
-    private List<Nutrient> nutrients = new ArrayList<Nutrient>();
+    private List<FoodItem> foodItems = new ArrayList<FoodItem>();
     private List<String> errors = new ArrayList<String>();
     private List<String> warnings = new ArrayList<String>();
     @Autowired
-    private NutrientsRepository nutrientsRepository;
+    private FoodItemsRepository foodItemsRepository;
 
     public UsdaDataImporter() {
     }
@@ -51,6 +50,8 @@ public class UsdaDataImporter {
     public List<String> getWarnings() {
         return warnings;
     }
+
+    public List<FoodItem> getFoodItems() { return foodItems; }
 
     private List<String[]> parseCsvFile(String filePath, int maxCols) throws IOException {
         String csvSeparator = "\\^";
@@ -159,17 +160,23 @@ public class UsdaDataImporter {
 
         // 5. "Join" FoodDescr with dictionaries and NutrientData
         for (FoodDescr foodDescr:foodDescrs) {
-            Nutrient nutrient = new Nutrient();
-            nutrient.name = foodDescr.LongDesc;
-            List<Measurement> measurements = new ArrayList<>();
+            FoodItem foodItem = new FoodItem();
+            foodItem.name = foodDescr.LongDesc;
+            List<Nutrient> nutrients = new ArrayList<>();
             List<NutrientData> nutrientDataList = nutrientDataMap.get(foodDescr.NDBNo);
             for (NutrientData nutrientData:nutrientDataList) {
                 // TODO: transform nutrientdata in measurement and add it to measurements
-                measurements.add(new Measurement("", "", ""));
+                NutrientDef nutrientDef = nutrientDefMap.get(nutrientData.NutrNo);
+                nutrients.add(new Nutrient(nutrientDef.NutrDesc, nutrientDef.Units, nutrientData.NutrVal));
             }
-            nutrient.setMeasurements(measurements);
-            nutrients.add(nutrient);
+            foodItem.setNutrients(nutrients);
+            this.foodItems.add(foodItem);
         }
+    }
+
+    public void saveAll() {
+        foodItemsRepository.saveAll(foodItems);
+        foodItems = new ArrayList<>();
     }
 
     private class FoodDescr {
