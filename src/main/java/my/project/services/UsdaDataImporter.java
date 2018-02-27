@@ -6,7 +6,9 @@ import my.project.data.repository.FoodItemsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,17 +22,19 @@ import java.util.Map;
  */
 @Service("UsdaDataImporter")
 public class UsdaDataImporter {
-    private static String FOOD_DESC = "FOOD_DES_NEW.txt";
+    private static String FOOD_DESC = "FOOD_DES.txt";
     private static String FOOD_GROUP = "FD_GROUP.txt";
     private static String NUTRIENT_DATA = "NUT_DATA.txt";
-    private static String NUTRIENT_DEFINITION = "NUTR_DEF_NEW.txt";
+    private static String NUTRIENT_DEFINITION = "NUTR_DEF.txt";
 
     private String dataPath = "";
+    private long itemsToImportCount = 0;
     private List<FoodItem> foodItems = new ArrayList<FoodItem>();
     private List<String> errors = new ArrayList<String>();
     private List<String> warnings = new ArrayList<String>();
     @Autowired
     private FoodItemsRepository foodItemsRepository;
+
 
     public UsdaDataImporter() {
     }
@@ -39,8 +43,11 @@ public class UsdaDataImporter {
         return dataPath;
     }
 
-    public void setDataPath(String dataPath) {
+    public void setDataPath(String dataPath) throws IOException {
         this.dataPath = dataPath;
+        BufferedReader reader = new BufferedReader(new FileReader(this.dataPath + File.separator + FOOD_DESC));
+        while (reader.readLine() != null ) itemsToImportCount++;
+        reader.close();
     }
 
     public List<String> getErrors() {
@@ -49,6 +56,10 @@ public class UsdaDataImporter {
 
     public List<String> getWarnings() {
         return warnings;
+    }
+
+    public long getItemsToImportCount() {
+        return itemsToImportCount;
     }
 
     public List<FoodItem> getFoodItems() { return foodItems; }

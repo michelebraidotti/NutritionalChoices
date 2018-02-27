@@ -1,5 +1,6 @@
 package my.project.services;
 
+import my.project.data.repository.FoodItemsRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -15,14 +16,18 @@ import static org.junit.Assert.assertEquals;
 public class UsdaDataImporterTest extends  BasicTest {
     @Autowired
     UsdaDataImporter usdaDataImporter;
+    @Autowired
+    FoodItemsRepository foodItemsRepository;
 
     @Test
     public void test() throws IOException {
-        int totalFooItems = 8789;
-        usdaDataImporter.setDataPath("/home/michele/Development/Code/NutritionalChoices/usda_data/sr28asc");
+        long beforeFoodItemCount = foodItemsRepository.count();
+        usdaDataImporter.setDataPath("src/test/resources/sample_data");
+        long testFoodItemsCount = usdaDataImporter.getItemsToImportCount();
         usdaDataImporter.parseFiles();
-        assertEquals(totalFooItems, usdaDataImporter.getFoodItems().size());
+        assertEquals(testFoodItemsCount, usdaDataImporter.getFoodItems().size());
         usdaDataImporter.saveAll();
+        assertEquals(beforeFoodItemCount + testFoodItemsCount, foodItemsRepository.count());
         assertEquals(0, usdaDataImporter.getFoodItems().size());
     }
 }

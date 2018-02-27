@@ -1,0 +1,2 @@
+~9901001~^~990100~^~TEST Butter, salted~^~TEST BUTTER,WITH SALT~^~~^~~^~Y~^~~^0^~~^6.38^4.27^8.79^3.87
+~9902001~^~990200~^~TEST Spices, allspice, ground~^~TEST ALLSPICE,GROUND~^~~^~~^~~^~~^0^~Pimenta dioica~^6.25^3.36^8.37^2.35

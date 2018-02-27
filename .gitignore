@@ -53,3 +53,6 @@ local.properties
 
 # Project specific
 /domain/src/main/generated/*
+
+# Custom for nutrients project
+/usda_data/*
